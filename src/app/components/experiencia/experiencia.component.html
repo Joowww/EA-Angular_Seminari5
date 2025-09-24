@@ -1,0 +1,52 @@
+<header class="app-bar">
+  <h1 class="app-bar__title">Experiencias</h1>
+  <nav class="app-bar__nav">
+    <a class="link" routerLink="/">Inicio</a>
+    <a class="link" routerLink="/usuaris">Usuarios</a>
+    <a class="link" routerLink="/buscar-experiencias">Buscar</a>
+  </nav>
+</header>
+
+<main class="shell shell--split">
+  <!-- Formulario -->
+  <section class="card">
+    <h2 class="card__title">Crear nueva experiencia</h2>
+
+    <form (ngSubmit)="onSubmit()" class="form">
+      <label class="field">
+        <span class="field__label">Propietario</span>
+        <select id="owner" [(ngModel)]="newExperience.owner" name="owner" required class="field__input">
+          <option *ngFor="let user of users" [value]="user._id">{{ user.name }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Participantes</span>
+        <select id="participants" [(ngModel)]="selectedParticipants" name="participants" multiple class="field__input">
+          <option *ngFor="let user of users" [value]="user._id">{{ user.name }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Descripción</span>
+        <textarea id="description" [(ngModel)]="newExperience.description" name="description"
+          class="field__input" required maxlength="300" rows="4"></textarea>
+        <small class="help">Máximo 300 caracteres</small>
+      </label>
+
+      <button type="submit" class="btn btn--primary">Enviar</button>
+    </form>
+
+    <div class="alert alert--error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  </section>
+
+  <!-- Lista -->
+  <section class="card">
+    <h2 class="card__title">Lista de experiencias</h2>
+
+    <ul class="list">
+      <li class="list__item" *ngFor="let experiencia of experiencias">
+        <h3 class="list__title">Propietario: {{ getUserNameById(experiencia.owner) }}</h3>
+        <p class="list__desc">Descripción: {{ experiencia.descr

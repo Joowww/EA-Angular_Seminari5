@@ -1,0 +1,82 @@
+<header class="app-bar">
+  <h1 class="app-bar__title">Usuarios</h1>
+  <nav class="app-bar__nav">
+    <a class="link" routerLink="/">Inicio</a>
+    <a class="link" routerLink="/experiencia">Experiencias</a>
+    <a class="link" routerLink="/buscar-experiencias">Buscar</a>
+  </nav>
+</header>
+
+<main class="shell shell--split">
+  <!-- Formulario -->
+  <section class="card">
+    <h2 class="card__title">
+      {{ indiceEdicion !== null ? 'Editar usuario' : 'Agregar usuario' }}
+    </h2>
+
+    <form (ngSubmit)="agregarElemento(userForm)" #userForm="ngForm" class="form">
+      <label class="field">
+        <span class="field__label">Nombre</span>
+        <input
+          class="field__input"
+          id="nombre"
+          [(ngModel)]="nuevoUsuario.name"
+          name="name"
+          placeholder="Nombre del usuario"
+          required />
+        <small class="field__error"
+          *ngIf="userForm.controls['name']?.invalid && (userForm.controls['name']?.touched || formSubmitted)">
+          El nombre es obligatorio.
+        </small>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input
+          class="field__input"
+          id="mail"
+          [(ngModel)]="nuevoUsuario.mail"
+          name="mail"
+          placeholder="Email"
+          required
+          email />
+        <small class="field__error"
+          *ngIf="userForm.controls['mail']?.invalid && (userForm.controls['mail']?.touched || formSubmitted)">
+          {{ userForm.controls['mail'].errors?.['required'] ? 'El email es obligatorio.' : 'Formato de email no válido.' }}
+        </small>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Contraseña</span>
+        <input
+          class="field__input"
+          id="password"
+          [(ngModel)]="nuevoUsuario.password"
+          name="password"
+          type="password"
+          placeholder="Password"
+          required
+          minlength="7" />
+        <small class="field__error"
+          *ngIf="userForm.controls['password']?.invalid && (userForm.controls['password']?.touched || formSubmitted)">
+          {{ userForm.controls['password'].errors?.['required'] ? 'La contraseña es obligatoria.' : 'Mínimo 7 caracteres.' }}
+        </small>
+      </label>
+
+      <label class="field">
+  <span class="field__label">Confirmar contraseña</span>
+  <input
+    class="field__input"
+    id="confirmarPassword"
+    [(ngModel)]="confirmarPassword"
+    name="confirmarPassword"
+    type="password"
+    placeholder="Confirmar password"
+    required
+    minlength="7" />
+  <small class="field__error"
+    *ngIf="confirmarPassword !== nuevoUsuario.password && confirmarPassword.length > 0 && formSubmitted">
+    Las contraseñas no coinciden.
+  </small>
+</label>
+
