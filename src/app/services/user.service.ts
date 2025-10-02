@@ -32,7 +32,7 @@ export class UserService {
   }
 
   // Actualizar el array de experiencias de un usuario
-  updateUserExperiences(userId: string, experienceId: string): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${userId}/addExperience`, { experienceId });
+  updateUserEvents(userId: string, eventId: string): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/${userId}/addEvent`, { eventId });
   }
 }

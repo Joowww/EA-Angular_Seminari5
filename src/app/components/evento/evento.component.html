@@ -1,0 +1,57 @@
+<div class="container">
+  <!-- Formulario para crear una nueva experiencia -->
+  <div class="evento-form">
+    <h2>Crear Nuevo Evento</h2>
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="name">Nombre:</label>
+        <select id="name" [(ngModel)]="newEvent.name" name="name" required>
+          <option *ngFor="let user of users" [value]="user._id">
+            {{ user.username }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="participantes">Participantes:</label>
+        <select id="participantes" [(ngModel)]="selectedParticipantes" name="participantes" multiple>
+          <option *ngFor="let user of users" [value]="user._id">
+            {{ user.username }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="schedule">Horario:</label>
+        <textarea id="schedule" [(ngModel)]="newEvent.schedule" name="schedule"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="address">Dirección:</label>
+        <textarea id="address" [(ngModel)]="newEvent.address" name="address"></textarea>
+      </div>
+      <button type="submit">Enviar</button>
+    </form>
+    <!-- Mensaje de error debajo del formulario -->
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Lista de eventos -->
+  <div class="evento-list">
+    <h1>Lista de Eventos</h1>
+    <ul>
+      <li *ngFor="let evento of eventos; let i = index ">
+        <h3>Nombre: {{ evento.name }}</h3>
+        <!-- <p>Descripción: {{ experiencia.description | truncate: 60}}</p> -->
+        <p>Horario: {{ evento.schedule}}</p>
+        <h4>Participantes:</h4>
+        <ul>
+          <li *ngFor="let participante of evento.participantes">
+            {{ getUserNameById(participante) }}
+          </li>
+        </ul>
+        <!-- Botón para eliminar la experiencia -->
+        <button *ngIf="evento._id !== undefined" (click)="deleteEvent(i)">Eliminar</button>
+      </li>
+    </ul>
+  </div>
+</div>

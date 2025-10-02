@@ -1,82 +1,124 @@
-<header class="app-bar">
-  <h1 class="app-bar__title">Usuarios</h1>
-  <nav class="app-bar__nav">
-    <a class="link" routerLink="/">Inicio</a>
-    <a class="link" routerLink="/experiencia">Experiencias</a>
-    <a class="link" routerLink="/buscar-experiencias">Buscar</a>
-  </nav>
-</header>
-
-<main class="shell shell--split">
-  <!-- Formulario -->
-  <section class="card">
-    <h2 class="card__title">
-      {{ indiceEdicion !== null ? 'Editar usuario' : 'Agregar usuario' }}
-    </h2>
-
-    <form (ngSubmit)="agregarElemento(userForm)" #userForm="ngForm" class="form">
-      <label class="field">
-        <span class="field__label">Nombre</span>
-        <input
-          class="field__input"
-          id="nombre"
-          [(ngModel)]="nuevoUsuario.name"
-          name="name"
-          placeholder="Nombre del usuario"
+<div class="container">
+  <!-- Formulario a la izquierda -->
+  <div class="form-container">
+    <h1>{{ indiceEdicion !== null ? 'Editar usuario' : 'Agregar un nuevo usuario' }}</h1>
+    <form (ngSubmit)="agregarElemento(userForm)" #userForm="ngForm">
+      <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        <input 
+          id="nombre" 
+          [(ngModel)]="nuevoUsuario.username" 
+          name="name" 
+          placeholder="Nombre del usuario" 
           required />
-        <small class="field__error"
-          *ngIf="userForm.controls['name']?.invalid && (userForm.controls['name']?.touched || formSubmitted)">
+        <div *ngIf="userForm.controls['name']?.invalid && (userForm.controls['name']?.touched || formSubmitted)" class="error-message">
           El nombre es obligatorio.
-        </small>
-      </label>
+        </div>
+      </div>
 
-      <label class="field">
-        <span class="field__label">Email</span>
-        <input
-          class="field__input"
-          id="mail"
-          [(ngModel)]="nuevoUsuario.mail"
-          name="mail"
-          placeholder="Email"
-          required
+      <div class="form-group">
+        <label for="mail">Email:</label>
+        <input 
+          id="mail" 
+          [(ngModel)]="nuevoUsuario.gmail" 
+          name="mail" 
+          placeholder="Email" 
+          required 
           email />
-        <small class="field__error"
-          *ngIf="userForm.controls['mail']?.invalid && (userForm.controls['mail']?.touched || formSubmitted)">
+        <div *ngIf="userForm.controls['mail']?.invalid && (userForm.controls['mail']?.touched || formSubmitted)" class="error-message">
           {{ userForm.controls['mail'].errors?.['required'] ? 'El email es obligatorio.' : 'Formato de email no válido.' }}
-        </small>
-      </label>
+        </div>
+      </div>
 
-      <label class="field">
-        <span class="field__label">Contraseña</span>
-        <input
-          class="field__input"
-          id="password"
-          [(ngModel)]="nuevoUsuario.password"
-          name="password"
-          type="password"
-          placeholder="Password"
-          required
+      <div class="form-group">
+        <label for="password">Contraseña:</label>
+        <input 
+          id="password" 
+          [(ngModel)]="nuevoUsuario.password" 
+          name="password" 
+          type="password" 
+          placeholder="Password" 
+          required 
           minlength="7" />
-        <small class="field__error"
-          *ngIf="userForm.controls['password']?.invalid && (userForm.controls['password']?.touched || formSubmitted)">
-          {{ userForm.controls['password'].errors?.['required'] ? 'La contraseña es obligatoria.' : 'Mínimo 7 caracteres.' }}
-        </small>
-      </label>
+        <div *ngIf="userForm.controls['password']?.invalid && (userForm.controls['password']?.touched || formSubmitted)" class="error-message">
+          {{ userForm.controls['password'].errors?.['required'] ? 'La contraseña es obligatoria.' : 'La contraseña debe tener al menos 7 caracteres.' }}
+        </div>
+      </div>
 
-      <label class="field">
-  <span class="field__label">Confirmar contraseña</span>
-  <input
-    class="field__input"
-    id="confirmarPassword"
-    [(ngModel)]="confirmarPassword"
-    name="confirmarPassword"
-    type="password"
-    placeholder="Confirmar password"
-    required
-    minlength="7" />
-  <small class="field__error"
-    *ngIf="confirmarPassword !== nuevoUsuario.password && confirmarPassword.length > 0 && formSubmitted">
-    Las contraseñas no coinciden.
-  </small>
-</label>
+      <div class="form-group">
+        <label for="confirmarPassword">Confirmar Contraseña:</label>
+        <input 
+          id="confirmarPassword" 
+          [(ngModel)]="confirmarPassword" 
+          name="confirmarPassword" 
+          type="password" 
+          placeholder="Confirmar Password" 
+          required 
+          minlength="7" />
+        <div *ngIf="confirmarPassword !== nuevoUsuario.password && confirmarPassword.length > 0 && formSubmitted" class="error-message">
+          Las contraseñas no coinciden.
+        </div>
+      </div>
 
+      <div class="form-group">
+        <label for="birthday">Aniversario:</label>
+        <input 
+          id="birthday" 
+          [(ngModel)]="nuevoUsuario.birthday" 
+          name="birthday" 
+          placeholder="Aniversario" />
+      </div>
+
+      <button 
+        type="submit" 
+        class="submit-button" 
+        [disabled]="!userForm.valid">
+        {{ indiceEdicion !== null ? 'Actualizar' : 'Agregar' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Lista de usuarios a la derecha -->
+  <div class="lista-usuarios">
+    <h2>Lista de Usuarios</h2>
+    <ul>
+      <li *ngFor="let usuario of usuarios; let i = index">
+        <div class="user-info">
+          <strong>{{ usuario.username }}</strong>
+          <div class="button-container">
+            <button (click)="toggleDesplegable(i)" class="detalles mostrar-detalles">
+              {{ desplegado[i] ? 'Ocultar detalles' : 'Mostrar detalles' }}
+            </button>
+            <button (click)="eliminarElemento(i)" class="eliminar">Eliminar</button>
+          </div>
+        </div>
+
+        <!-- Detalles del usuario -->
+        <div *ngIf="desplegado[i]" class="user-details">
+          <p><strong>Email:</strong> {{ usuario.gmail | maskEmail}}</p>
+           <!-- Contraseña con visibilidad controlada -->
+           <p><strong>Contraseña:</strong>
+            <span *ngIf="mostrarPassword[i]">{{ usuario.password }}</span>
+            <span *ngIf="!mostrarPassword[i]">********</span>
+          </p>
+          <!-- Biografía con lógica de truncado y leer más -->
+          <p><strong>Aniversario:</strong>
+            <strong>{{ usuario.birthday }}</strong>
+          </p>      
+
+          <button (click)="prepararEdicion(usuario, i)" class="modificar">Modificar</button>
+
+          <!-- Muestra los eventos del usuario -->
+         <p><strong>Eventos:</strong>
+           <span *ngFor="let exp of usuario.eventos">{{ exp }} </span>
+         </p>
+            
+         <select (change)="usuario._id ? agregarEvento(usuario._id, $event) : null">
+           <option *ngFor="let exp of usuario.eventos" [value]="exp">Eventos {{ exp }}</option>
+         </select>
+
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>

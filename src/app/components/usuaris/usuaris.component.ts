@@ -5,8 +5,8 @@ import { User } from '../../models/user.model';
 import { UserService } from '../../services/user.service'; 
 import { TruncatePipe } from '../../pipes/truncate.pipe';
 import { MaskEmailPipe } from '../../pipes/maskEmail.pipe';
-import { ExperienciaService } from '../../services/experiencia.service';  // Importar servicio de experiencias
-import { Experiencia } from '../../models/experiencia.model';  // Modelo de Experiencia
+import { EventoService } from '../../services/evento.service';  // Importar servicio de evento
+import { Evento } from '../../models/evento.model';  // Modelo de Experiencia
 
 @Component({
   selector: 'app-usuaris',
@@ -18,15 +18,15 @@ import { Experiencia } from '../../models/experiencia.model';  // Modelo de Expe
 export class UsuarisComponent implements OnInit {
   usuarios: User[] = [];
   desplegado: boolean[] = [];
-  desplegarBiografia: boolean[] = [];
+  // desplegarBiografia: boolean[] = [];
   mostrarPassword: boolean[] = [];
 
   nuevoUsuario: User = {
-    name: '',
-    mail: '',
+    username: '',
+    gmail: '',
     password: '',
-    comment: '',
-    experiencies: []  // Inicializar siempre como un array vacío
+    birthday: new Date(), // fecha actual
+    eventos: []
   };
 
   confirmarPassword: string = '';
@@ -34,7 +34,7 @@ export class UsuarisComponent implements OnInit {
   indiceEdicion: number | null = null;
   formSubmitted: boolean = false;
 
-  constructor(private userService: UserService, private experienciaService: ExperienciaService) {}
+  constructor(private userService: UserService, private eventoService: EventoService) {}
 
   ngOnInit(): void {
     this.userService.getUsers().subscribe(data => {
@@ -43,10 +43,10 @@ export class UsuarisComponent implements OnInit {
 
       // Obtener las descripciones de las experiencias para cada usuario
       this.usuarios.forEach(usuario => {
-        if (usuario.experiencies) {
-          usuario.experiencies.forEach((exp, index) => {
-            this.experienciaService.getExperienciaById(exp as unknown as string).subscribe((experiencia: Experiencia) => {
-              usuario.experiencies![index] = experiencia;  // Reemplazar el ID por el objeto Experiencia completo
+        if (usuario.eventos) {
+          usuario.eventos.forEach((exp, index) => {
+            this.eventoService.getEventoById(exp as unknown as string).subscribe((evento: Evento) => {
+              usuario.eventos![index] = evento;  // Reemplazar el ID por el objeto Experiencia completo
             });
           });
         }
@@ -70,28 +70,35 @@ export class UsuarisComponent implements OnInit {
       this.indiceEdicion = null;
     } else {
       const usuarioJSON: User = {
-        name: this.nuevoUsuario.name,
-        mail: this.nuevoUsuario.mail,
+        username: this.nuevoUsuario.username,
+        gmail: this.nuevoUsuario.gmail,
         password: this.nuevoUsuario.password,
-        comment: this.nuevoUsuario.comment,
-        experiencies: this.nuevoUsuario.experiencies
+        birthday: this.nuevoUsuario.birthday,
+        eventos: this.nuevoUsuario.eventos
       };
       this.userService.addUser(usuarioJSON).subscribe(response => {
         console.log('Usuario agregado:', response);
-        this.usuarios.push({ ...usuarioJSON, _id: response._id, experiencies: response.experiencies });
+        this.usuarios.push({ ...usuarioJSON, _id: response._id, eventos: response.eventos });
         this.desplegado.push(false);
       });
     }
     this.resetForm(userForm);
   }
 
+  // Método para manejar el cambio de experiencia
+  agregarEvento(usuarioId: string, event: Event): void {
+    const selectElement = event.target as HTMLSelectElement; 
+    const selectedValue = selectElement.value; 
+    console.log(`Usuario ID: ${usuarioId}, Evento: ${selectedValue}`);
+  }
+
   resetForm(userForm: NgForm): void {
     this.nuevoUsuario = {
-      name: '',
-      mail: '',
+      username: '',
+      gmail: '',
       password: '',
-      comment: '',
-      experiencies: []  // Asegurar que siempre sea un array vacío
+      birthday: new Date(),
+      eventos: []  // Asegurar que siempre sea un array vacío
     };
     this.confirmarPassword = '';
     this.formSubmitted = false;
@@ -114,7 +121,7 @@ export class UsuarisComponent implements OnInit {
       return;
     }
 
-    if (confirm(`¿Estás seguro de que deseas eliminar a ${usuarioAEliminar.name}?`)) {
+    if (confirm(`¿Estás seguro de que deseas eliminar a ${usuarioAEliminar.username}?`)) {
       this.userService.deleteUserById(usuarioAEliminar._id).subscribe(
         response => {
           console.log('Usuario eliminado:', response);
@@ -133,9 +140,9 @@ export class UsuarisComponent implements OnInit {
     this.desplegado[index] = !this.desplegado[index];
   }
 
-  toggleBiografia(index: number): void {
+  /*toggleBiografia(index: number): void {
     this.desplegarBiografia[index] = !this.desplegarBiografia[index];
-  }
+  }*/
 
   togglePassword(index: number): void {
     this.mostrarPassword[index] = !this.mostrarPassword[index];
