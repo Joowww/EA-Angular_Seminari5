@@ -1,34 +1,82 @@
 <div class="container">
-  <!-- Formulario para crear una nueva experiencia -->
+  <!-- Formulario para crear/editar evento -->
   <div class="evento-form">
     <h2>Crear Nuevo Evento</h2>
+
     <form (ngSubmit)="onSubmit()">
+      <!-- Título del evento -->
       <div class="form-group">
-        <label for="name">Nombre:</label>
-        <select id="name" [(ngModel)]="newEvent.name" name="name" required>
-          <option *ngFor="let user of users" [value]="user._id">
-            {{ user.username }}
-          </option>
-        </select>
+        <label for="name">Título del evento:</label>
+        <input
+          id="name"
+          type="text"
+          [(ngModel)]="newEvent.name"
+          name="name"
+          placeholder="Ej: Reunión de planificación Q4"
+          required />
       </div>
+
+      <!-- Participantes (IDs de usuario) -->
       <div class="form-group">
         <label for="participantes">Participantes:</label>
-        <select id="participantes" [(ngModel)]="selectedParticipantes" name="participantes" multiple>
+        <select
+          id="participantes"
+          [(ngModel)]="selectedParticipantes"
+          name="participantes"
+          multiple>
           <option *ngFor="let user of users" [value]="user._id">
             {{ user.username }}
           </option>
         </select>
       </div>
+
+      <!-- Builder de horarios (schedule: string[]) -->
       <div class="form-group">
-        <label for="schedule">Horario:</label>
-        <textarea id="schedule" [(ngModel)]="newEvent.schedule" name="schedule"></textarea>
+        <label>Horarios del evento:</label>
+
+        <div class="schedule-row">
+          <input
+            type="date"
+            [(ngModel)]="dateStr"
+            name="dateStr"
+            aria-label="Fecha" />
+          <input
+            type="time"
+            [(ngModel)]="timeStr"
+            name="timeStr"
+            aria-label="Hora" />
+          <button type="button" (click)="addScheduleSlot()" class="add-slot">
+            Añadir horario
+          </button>
+        </div>
+
+        <!-- Lista de horarios añadidos -->
+        <ul class="schedule-list" *ngIf="newEvent.schedule?.length">
+          <li *ngFor="let s of newEvent.schedule; let i = index">
+            <span>{{ s }}</span>
+            <button type="button" (click)="removeScheduleSlot(i)" class="remove-slot">Quitar</button>
+          </li>
+        </ul>
+
+        <small class="hint">
+          Cada horario se guarda como texto (p. ej., <code>2025-10-03 18:30</code>).
+        </small>
       </div>
+
+      <!-- Dirección (string) -->
       <div class="form-group">
         <label for="address">Dirección:</label>
-        <textarea id="address" [(ngModel)]="newEvent.address" name="address"></textarea>
+        <input
+          id="address"
+          type="text"
+          [(ngModel)]="newEvent.address"
+          name="address"
+          placeholder="Ej: C/ Mallorca 123, Barcelona" />
       </div>
-      <button type="submit">Enviar</button>
+
+      <button type="submit">Guardar</button>
     </form>
+
     <!-- Mensaje de error debajo del formulario -->
     <div class="error-message" *ngIf="errorMessage">
       {{ errorMessage }}
@@ -39,18 +87,28 @@
   <div class="evento-list">
     <h1>Lista de Eventos</h1>
     <ul>
-      <li *ngFor="let evento of eventos; let i = index ">
-        <h3>Nombre: {{ evento.name }}</h3>
-        <!-- <p>Descripción: {{ experiencia.description | truncate: 60}}</p> -->
-        <p>Horario: {{ evento.schedule}}</p>
-        <h4>Participantes:</h4>
-        <ul>
-          <li *ngFor="let participante of evento.participantes">
-            {{ getUserNameById(participante) }}
-          </li>
-        </ul>
-        <!-- Botón para eliminar la experiencia -->
-        <button *ngIf="evento._id !== undefined" (click)="deleteEvent(i)">Eliminar</button>
+      <li *ngFor="let evento of eventos; let i = index">
+        <h3>Título: {{ evento.name }}</h3>
+
+        <p><strong>Dirección:</strong> {{ evento.address || '-' }}</p>
+
+        <div>
+          <strong>Horarios:</strong>
+          <ul>
+            <li *ngFor="let s of evento.schedule">{{ s }}</li>
+          </ul>
+        </div>
+
+        <div>
+          <strong>Participantes:</strong>
+          <ul>
+            <li *ngFor="let participante of evento.participantes">
+              {{ getUserNameById(participante) }}
+            </li>
+          </ul>
+        </div>
+
+        <button *ngIf="evento._id" (click)="deleteEvent(i)">Eliminar</button>
       </li>
     </ul>
   </div>

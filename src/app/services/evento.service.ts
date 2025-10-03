@@ -3,11 +3,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Evento } from '../models/evento.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EventoService {
-  private apiUrl = 'http://localhost:3000/api/evento'; // URL de la API para eventos
+  // ✅ Tu backend expone /api/event (no /api/evento)
+  private apiUrl = 'http://localhost:3000/api/event';
 
   constructor(private http: HttpClient) {}
 
@@ -16,23 +15,35 @@ export class EventoService {
     return this.http.get<Evento[]>(this.apiUrl);
   }
 
-  // Obtener eventos asociados a un usuario específico por su ID como participante
+  // Obtener eventos asociados a un usuario por su ID (si lo usas)
   getEventoByUser(userId: string): Observable<Evento[]> {
-    // Consulta para obtener eventos participante
     return this.http.get<Evento[]>(`${this.apiUrl}?participante=${userId}`);
   }
-  // Obtener una evento por ID
+
+  // Obtener un evento por ID
   getEventoById(id: string): Observable<Evento> {
     return this.http.get<Evento>(`${this.apiUrl}/${id}`);
   }
 
-  // Agregar una nueva evento al backend
+  // Agregar un nuevo evento al backend
+  // (tu front usa Evento con schedule: string[], backend espera schedule: string)
   addEvento(newEvent: Evento): Observable<Evento> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post<Evento>(this.apiUrl, newEvent, { headers });
+
+    // ✅ convertir array -> string para el backend
+    const scheduleAsString =
+      Array.isArray(newEvent.schedule) ? newEvent.schedule.join(' | ') : (newEvent.schedule as any);
+
+    // Enviar payload compatibilizado con el backend (schedule: string)
+    const payload: any = {
+      ...newEvent,
+      schedule: scheduleAsString
+    };
+
+    return this.http.post<Evento>(this.apiUrl, payload, { headers });
   }
 
-  // Asignar un evento a un usuario (añadir al array de eventos)
+  // Asignar un evento a un usuario (si lo usas)
   addEventToUser(userId: string, eventId: string): Observable<any> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     return this.http.put<any>(`http://localhost:3000/api/user/${userId}/addEvent`, { eventId }, { headers });

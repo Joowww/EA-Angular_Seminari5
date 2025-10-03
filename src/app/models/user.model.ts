@@ -1,4 +1,4 @@
-import { Evento } from './evento.model';  // Asegúrate de importar el modelo Experiencia
+import { Evento } from './evento.model';  // Asegúrate de importar el modelo Evento
 
 export interface User { 
   _id?: string;      // MongoDB genera automáticamente este campo al insertar

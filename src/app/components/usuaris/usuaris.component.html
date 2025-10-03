@@ -2,14 +2,15 @@
   <!-- Formulario a la izquierda -->
   <div class="form-container">
     <h1>{{ indiceEdicion !== null ? 'Editar usuario' : 'Agregar un nuevo usuario' }}</h1>
+
     <form (ngSubmit)="agregarElemento(userForm)" #userForm="ngForm">
       <div class="form-group">
         <label for="nombre">Nombre:</label>
-        <input 
-          id="nombre" 
-          [(ngModel)]="nuevoUsuario.username" 
-          name="name" 
-          placeholder="Nombre del usuario" 
+        <input
+          id="nombre"
+          [(ngModel)]="nuevoUsuario.username"
+          name="name"
+          placeholder="Nombre del usuario"
           required />
         <div *ngIf="userForm.controls['name']?.invalid && (userForm.controls['name']?.touched || formSubmitted)" class="error-message">
           El nombre es obligatorio.
@@ -18,12 +19,12 @@
 
       <div class="form-group">
         <label for="mail">Email:</label>
-        <input 
-          id="mail" 
-          [(ngModel)]="nuevoUsuario.gmail" 
-          name="mail" 
-          placeholder="Email" 
-          required 
+        <input
+          id="mail"
+          [(ngModel)]="nuevoUsuario.gmail"
+          name="mail"
+          placeholder="Email"
+          required
           email />
         <div *ngIf="userForm.controls['mail']?.invalid && (userForm.controls['mail']?.touched || formSubmitted)" class="error-message">
           {{ userForm.controls['mail'].errors?.['required'] ? 'El email es obligatorio.' : 'Formato de email no válido.' }}
@@ -32,13 +33,13 @@
 
       <div class="form-group">
         <label for="password">Contraseña:</label>
-        <input 
-          id="password" 
-          [(ngModel)]="nuevoUsuario.password" 
-          name="password" 
-          type="password" 
-          placeholder="Password" 
-          required 
+        <input
+          id="password"
+          [(ngModel)]="nuevoUsuario.password"
+          name="password"
+          type="password"
+          placeholder="Password"
+          required
           minlength="7" />
         <div *ngIf="userForm.controls['password']?.invalid && (userForm.controls['password']?.touched || formSubmitted)" class="error-message">
           {{ userForm.controls['password'].errors?.['required'] ? 'La contraseña es obligatoria.' : 'La contraseña debe tener al menos 7 caracteres.' }}
@@ -47,31 +48,32 @@
 
       <div class="form-group">
         <label for="confirmarPassword">Confirmar Contraseña:</label>
-        <input 
-          id="confirmarPassword" 
-          [(ngModel)]="confirmarPassword" 
-          name="confirmarPassword" 
-          type="password" 
-          placeholder="Confirmar Password" 
-          required 
+        <input
+          id="confirmarPassword"
+          [(ngModel)]="confirmarPassword"
+          name="confirmarPassword"
+          type="password"
+          placeholder="Confirmar Password"
+          required
           minlength="7" />
         <div *ngIf="confirmarPassword !== nuevoUsuario.password && confirmarPassword.length > 0 && formSubmitted" class="error-message">
           Las contraseñas no coinciden.
         </div>
       </div>
 
+      <!-- 🔹 Input de fecha como string "YYYY-MM-DD", enlazado a birthdayStr -->
       <div class="form-group">
         <label for="birthday">Aniversario:</label>
-        <input 
-          id="birthday" 
-          [(ngModel)]="nuevoUsuario.birthday" 
-          name="birthday" 
-          placeholder="Aniversario" />
+        <input
+          id="birthday"
+          type="date"
+          [(ngModel)]="birthdayStr"
+          name="birthday" />
       </div>
 
-      <button 
-        type="submit" 
-        class="submit-button" 
+      <button
+        type="submit"
+        class="submit-button"
         [disabled]="!userForm.valid">
         {{ indiceEdicion !== null ? 'Actualizar' : 'Agregar' }}
       </button>
@@ -95,28 +97,33 @@
 
         <!-- Detalles del usuario -->
         <div *ngIf="desplegado[i]" class="user-details">
-          <p><strong>Email:</strong> {{ usuario.gmail | maskEmail}}</p>
-           <!-- Contraseña con visibilidad controlada -->
-           <p><strong>Contraseña:</strong>
+          <p><strong>Email:</strong> {{ usuario.gmail | maskEmail }}</p>
+
+          <p><strong>Contraseña:</strong>
             <span *ngIf="mostrarPassword[i]">{{ usuario.password }}</span>
             <span *ngIf="!mostrarPassword[i]">********</span>
           </p>
-          <!-- Biografía con lógica de truncado y leer más -->
+
           <p><strong>Aniversario:</strong>
-            <strong>{{ usuario.birthday }}</strong>
-          </p>      
+            <!-- Muestra la fecha formateada -->
+            <strong>{{ usuario.birthday | date: 'yyyy-MM-dd' }}</strong>
+          </p>
 
           <button (click)="prepararEdicion(usuario, i)" class="modificar">Modificar</button>
 
-          <!-- Muestra los eventos del usuario -->
-         <p><strong>Eventos:</strong>
-           <span *ngFor="let exp of usuario.eventos">{{ exp }} </span>
-         </p>
-            
-         <select (change)="usuario._id ? agregarEvento(usuario._id, $event) : null">
-           <option *ngFor="let exp of usuario.eventos" [value]="exp">Eventos {{ exp }}</option>
-         </select>
+          <!-- Muestra los eventos del usuario (IDs o objetos) -->
+          <p><strong>Eventos:</strong>
+            <ng-container *ngFor="let exp of usuario.eventos">
+              <span>{{ isEvento(exp) ? exp.name : exp }}</span>&nbsp;
+            </ng-container>
+          </p>
 
+          <!-- Selector de eventos: el value debe ser el ID (si es objeto, usa _id) -->
+          <select (change)="usuario._id ? agregarEvento(usuario._id, $event) : null">
+            <option *ngFor="let exp of usuario.eventos" [value]="isEvento(exp) ? exp._id : exp">
+              {{ isEvento(exp) ? ('Evento ' + exp.name) : ('Evento ' + exp) }}
+            </option>
+          </select>
         </div>
       </li>
     </ul>
