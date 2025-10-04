@@ -1,16 +1,27 @@
 <header class="app-bar">
-  <img src="assets/images/angular.png" alt="Angular" class="app-bar__logo" />
-  <h1 class="app-bar__title">Demo Angular</h1>
+  <div class="app-bar__content">
+    <img src="assets/images/angular.png" alt="Angular" class="app-bar__logo" />
+    <h1 class="app-bar__title">Demo Angular</h1>
+  </div>
 </header>
 
-<main class="shell">
-  <section class="card card--center">
-    <h2 class="card__title">Navegación</h2>
-    <p class="card__subtitle">Elige una sección</p>
+<main class="home-container">
+  <section class="hero card">
+    <div class="hero__text">
+      <h2 class="hero__title">Bienvenido 👋</h2>
+      <p class="hero__subtitle">
+        Gestiona usuarios y eventos con una interfaz limpia y consistente.
+      </p>
+    </div>
+  </section>
 
-    <nav class="actions">
+  <section class="nav card">
+    <h3 class="nav__title">Navegación</h3>
+    <p class="nav__subtitle">Elige una sección</p>
+
+    <div class="nav__actions">
       <button class="btn" routerLink="/usuaris">👤 Usuarios</button>
       <button class="btn" routerLink="/evento">🗺️ Eventos</button>
-    </nav>
+    </div>
   </section>
 </main>

@@ -1,156 +1,162 @@
-/* Contenedor general */
 .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 40px;
-  max-width: 1600px;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px; /* más separación entre formulario y lista */
+  width: 95%;
+  margin: 20px auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Estilo del contenedor del formulario */
+@media (max-width: 1024px) {
+  .container { grid-template-columns: 1fr; }
+}
+
+.btn-back {
+  background: #FAF3E0;
+  color: #8B0000;
+  border: 2px solid #8B0000;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn-back:hover { background: #fff3da; }
+
+.form-header{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start; /* botón más a la izquierda con el título */
+  gap:12px;
+  margin-bottom:12px;
+}
+
 .form-container {
-  background-color: #8B0000; /* Rojo vino */
-  color: #FAF3E0; /* Blanco roto */
+  background-color: #8B0000;
+  color: #FAF3E0;
   padding: 30px;
   border-radius: 15px;
-  width: 45%;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
 }
 
-/* Título del formulario (h1) */
 .form-container h1 {
-  font-size: 2.2rem; /* Aumentar el tamaño de letra a 2.2rem */
-  color: #FAF3E0; /* Blanco roto */
-  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #FAF3E0;
+  margin: 0;
 }
 
-/* Título de la lista de usuarios (h2) */
-.lista-usuarios h2 {
-  font-size: 2.2rem; /* Aumentar el tamaño de letra a 2.2rem */
-  color: #FAF3E0; /* Blanco roto */
-  margin-bottom: 20px;
+.form-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: start;
 }
+@media (max-width: 1024px) { .form-grid { grid-template-columns: 1fr; } }
 
-/* Estilo general de etiquetas y entradas */
+.form-group { margin-bottom: 14px; }
+
 label {
-  font-size: 1.1rem; /* Aumentar tamaño de letra de las etiquetas */
-  color: #FAF3E0; /* Blanco roto */
-  margin-bottom: 5px;
-  display: block; /* Asegurar que las etiquetas estén en su propia línea */
+  font-size: 1rem;
+  color: #FAF3E0;
+  margin-bottom: 6px;
+  display: block;
 }
 
-/* Campos de texto y área de texto */
 input, textarea {
   padding: 12px;
-  border: 1px solid #4C0000; /* Rojo oscuro */
+  border: 2px solid #4C0000;
   border-radius: 8px;
   width: 100%;
-  margin-bottom: 15px;
-  margin-right: 10px; /* Margen a la derecha para separar del contenedor */
-  box-sizing: border-box; /* Incluir padding y borde dentro del ancho */
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  background: #fff;
+  color: #1f1f1f;
 }
+input:focus { outline: none; border-color: #4CAF50; }
 
-/* Botón del formulario */
+.hint-card { background: #4C0000; border-radius: 12px; padding: 12px; }
+.hint-card h4 { margin: 0 0 6px; color: #FAF3E0; }
+
 .submit-button {
-  background-color: #4CAF50; /* Verde hoja */
+  background-color: #4CAF50;
   color: #FAF3E0;
-  padding: 15px;
+  padding: 12px 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease;
 }
+.submit-button:hover { background-color: #388E3C; }
 
-.submit-button:hover {
-  background-color: #388E3C; /* Verde más oscuro */
-}
-
-/* Estilo de la lista de usuarios */
 .lista-usuarios {
-  background-color: #4C0000; /* Rojo oscuro */
-  color: #FAF3E0; /* Blanco roto */
-  padding: 30px;
-  border-radius: 15px;
-  width: 45%;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #4C0000;
+  color: #FAF3E0;
+  padding: 20px;
+  border-radius: 16px;
+  width: 100%;
+  box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
 }
 
-/* Elementos de la lista */
-.lista-usuarios li {
-  background-color: #8B0000; /* Rojo vino */
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 8px;
+.list-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
-/* Estilo del texto de la información de usuarios */
-.user-info strong {
-  font-size: 1.5rem; /* Aumentar el tamaño de la letra */
-  color: #FAF3E0; /* Blanco roto */
+.page-size { display: flex; align-items: center; gap: 6px; }
+.page-size select {
+  background: #8B0000; color: #FAF3E0; border: 1px solid #7a0000; border-radius: 8px; padding: 4px 8px;
 }
 
-.user-details {
-  font-size: 1.2rem; /* Aumentar el tamaño del texto de los detalles */
+.pager {
+  display: flex; align-items: center; gap: 8px; margin: 6px 0 14px;
+}
+.pager button {
+  background: #4CAF50; color: #FAF3E0; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;
+}
+.pager button[disabled] { opacity: .6; cursor: default; }
+.pager .counter, .pager .total { font-size: .95rem; }
+
+.lista-usuarios ul {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;
+}
+.lista-usuarios li {
+  background-color: #8B0000; padding: 14px; border-radius: 12px; display: block;
 }
 
-.user-details p {
-  margin: 5px 0;
-}
+.user-info { display: flex; align-items: center; justify-content: space-between; }
+.user-info strong { font-size: 1.2rem; color: #FAF3E0; }
 
-/* Contenedor de botones en la lista */
-.button-container {
-  display: flex;
-  gap: 10px;
-}
+.user-details { font-size: 1rem; margin-top: 10px; }
+.user-details p { margin: 5px 0; }
 
-/* Botones */
+.button-container { display: flex; gap: 10px; }
+
 button {
-  padding: 5px 10px; /* Reducir el tamaño de padding de los botones */
-  border: none;
-  border-radius: 5px;
-  font-size: 0.9rem; /* Reducir el tamaño de la letra de los botones */
-  color: white;
-  cursor: pointer;
-  margin-left: 10px;
+  padding: 8px 12px; border: none; border-radius: 8px; font-size: 0.9rem; color: white; cursor: pointer;
 }
+button.mostrar-detalles { background-color: #4CAF50; }
+button.mostrar-detalles:hover { background-color: #66BB6A; }
+button.eliminar { background-color: #388E3C; }
+button.eliminar:hover { background-color: #2E7D32; }
+button.modificar { background-color: #808000; }
+button.modificar:hover { background-color: #6B8E23; }
 
-/* Botón de mostrar detalles (verde claro) */
-button.mostrar-detalles {
-  background-color: #4CAF50; /* Verde claro */
+/* Modales (se reutilizan estilos existentes) */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 1200;
 }
-
-button.mostrar-detalles:hover {
-  background-color: #66BB6A; /* Más claro al hacer hover */
+.modal {
+  background: #FAF3E0; color: #1f1f1f; width: 100%; max-width: 420px; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25); padding: 24px; text-align: center;
 }
-
-/* Botón de eliminar (verde oscuro) */
-button.eliminar {
-  background-color: #388E3C; /* Verde más oscuro */
-}
-
-button.eliminar:hover {
-  background-color: #2E7D32; /* Más oscuro al hacer hover */
-}
-
-/* Botón de modificar (verde caqui) */
-button.modificar {
-  background-color: #808000; /* Verde caqui */
-}
-
-button.modificar:hover {
-  background-color: #6B8E23; /* Más oscuro al hacer hover */
-}
-/* Botón de leer más/leer menos igual al de mostrar detalles */
-button.leer-mas {
-  background-color: #4CAF50; /* Verde claro */
-}
-
-button.leer-mas:hover {
-  background-color: #66BB6A; /* Más claro al hacer hover */
-}
+.modal h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.4rem; }
+.modal p { margin: 0 0 18px 0; }
+.modal-actions { display: flex; gap: 12px; justify-content: center; }
+.btn-cancel { background: #8B0000; color: #FAF3E0; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+.btn-cancel:hover { background: #6c0000; }
+.btn-confirm { background: #4CAF50; color: #FAF3E0; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+.btn-confirm:hover { background: #388E3C; }

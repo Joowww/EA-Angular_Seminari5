@@ -1,131 +1,216 @@
 <div class="container">
-  <!-- Formulario a la izquierda -->
   <div class="form-container">
-    <h1>{{ indiceEdicion !== null ? 'Editar usuario' : 'Agregar un nuevo usuario' }}</h1>
-
     <form (ngSubmit)="agregarElemento(userForm)" #userForm="ngForm">
-      <div class="form-group">
-        <label for="nombre">Nombre:</label>
-        <input
-          id="nombre"
-          [(ngModel)]="nuevoUsuario.username"
-          name="name"
-          placeholder="Nombre del usuario"
-          required />
-        <div *ngIf="userForm.controls['name']?.invalid && (userForm.controls['name']?.touched || formSubmitted)" class="error-message">
-          El nombre es obligatorio.
+      <div class="form-header">
+        <h1>{{ indiceEdicion !== null ? 'Editar usuario' : 'Agregar un nuevo usuario' }}</h1>
+        <button type="button" class="btn-back" (click)="goHome()">← Volver a Home</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="left-col">
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="nombre">Nombre:</label>
+            <input
+              id="nombre"
+              [(ngModel)]="nuevoUsuario.username"
+              name="name"
+              #nameCtrl="ngModel"
+              placeholder="Nombre del usuario"
+              required />
+            <div class="error-message" *ngIf="(nameCtrl.touched || formSubmitted) && nameCtrl.errors?.['required']">
+              El nombre es obligatorio.
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="mail">Email:</label>
+            <input
+              id="mail"
+              [(ngModel)]="nuevoUsuario.gmail"
+              name="mail"
+              #mailCtrl="ngModel"
+              placeholder="Email"
+              required
+              email />
+            <div class="error-message" *ngIf="(mailCtrl.touched || formSubmitted) && mailCtrl.errors?.['required']">
+              El email es obligatorio.
+            </div>
+            <div class="error-message" *ngIf="(mailCtrl.touched || formSubmitted) && !mailCtrl.errors?.['required'] && mailCtrl.errors?.['email']">
+              Formato de email no válido.
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input
+              id="password"
+              [(ngModel)]="nuevoUsuario.password"
+              name="password"
+              #passCtrl="ngModel"
+              type="password"
+              placeholder="Password"
+              required
+              minlength="7" />
+            <div class="error-message" *ngIf="(passCtrl.touched || formSubmitted) && passCtrl.errors?.['required']">
+              La contraseña es obligatoria.
+            </div>
+            <div class="error-message" *ngIf="(passCtrl.touched || formSubmitted) && !passCtrl.errors?.['required'] && passCtrl.errors?.['minlength']">
+              La contraseña debe tener al menos 7 caracteres.
+            </div>
+          </div>
+
+          <!-- Confirmar contraseña -->
+          <div class="form-group">
+            <label for="confirmarPassword">Confirmar Contraseña:</label>
+            <input
+              id="confirmarPassword"
+              [(ngModel)]="confirmarPassword"
+              name="confirmarPassword"
+              #confirmCtrl="ngModel"
+              type="password"
+              placeholder="Confirmar Password"
+              required
+              minlength="7" />
+            <div class="error-message" *ngIf="(confirmCtrl.touched || formSubmitted) && confirmCtrl.errors?.['required']">
+              Confirmar contraseña es obligatorio.
+            </div>
+            <div class="error-message" *ngIf="(confirmCtrl.touched || formSubmitted) && !confirmCtrl.errors?.['required'] && confirmCtrl.errors?.['minlength']">
+              Debe tener al menos 7 caracteres.
+            </div>
+            <div class="error-message"
+                 *ngIf="(confirmCtrl.touched || formSubmitted)
+                         && confirmarPassword
+                         && nuevoUsuario.password
+                         && confirmarPassword !== nuevoUsuario.password">
+              Las contraseñas no coinciden.
+            </div>
+          </div>
+
+          <!-- Aniversario -->
+          <div class="form-group">
+            <label for="birthday">Aniversario:</label>
+            <input
+              id="birthday"
+              type="date"
+              [(ngModel)]="birthdayStr"
+              name="birthday"
+              #birthdayCtrl="ngModel"
+              required />
+            <div class="error-message" *ngIf="(birthdayCtrl.touched || formSubmitted) && birthdayCtrl.errors?.['required']">
+              El aniversario es obligatorio.
+            </div>
+            <div class="error-message" *ngIf="(birthdayCtrl.touched || formSubmitted) && !birthdayCtrl.errors?.['required'] && isFutureBirthday(birthdayStr)">
+              La fecha no puede ser posterior a hoy.
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="mail">Email:</label>
-        <input
-          id="mail"
-          [(ngModel)]="nuevoUsuario.gmail"
-          name="mail"
-          placeholder="Email"
-          required
-          email />
-        <div *ngIf="userForm.controls['mail']?.invalid && (userForm.controls['mail']?.touched || formSubmitted)" class="error-message">
-          {{ userForm.controls['mail'].errors?.['required'] ? 'El email es obligatorio.' : 'Formato de email no válido.' }}
-        </div>
-      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button type="submit" class="submit-button">
+          {{ indiceEdicion !== null ? 'Actualizar' : 'Agregar' }}
+        </button>
 
-      <div class="form-group">
-        <label for="password">Contraseña:</label>
-        <input
-          id="password"
-          [(ngModel)]="nuevoUsuario.password"
-          name="password"
-          type="password"
-          placeholder="Password"
-          required
-          minlength="7" />
-        <div *ngIf="userForm.controls['password']?.invalid && (userForm.controls['password']?.touched || formSubmitted)" class="error-message">
-          {{ userForm.controls['password'].errors?.['required'] ? 'La contraseña es obligatoria.' : 'La contraseña debe tener al menos 7 caracteres.' }}
-        </div>
+        <button
+          *ngIf="indiceEdicion !== null"
+          type="button"
+          class="submit-button"
+          style="background:#8B0000;"
+          (click)="cancelarEdicion(userForm)">
+          Cancelar edición
+        </button>
       </div>
-
-      <div class="form-group">
-        <label for="confirmarPassword">Confirmar Contraseña:</label>
-        <input
-          id="confirmarPassword"
-          [(ngModel)]="confirmarPassword"
-          name="confirmarPassword"
-          type="password"
-          placeholder="Confirmar Password"
-          required
-          minlength="7" />
-        <div *ngIf="confirmarPassword !== nuevoUsuario.password && confirmarPassword.length > 0 && formSubmitted" class="error-message">
-          Las contraseñas no coinciden.
-        </div>
-      </div>
-
-      <!-- 🔹 Input de fecha como string "YYYY-MM-DD", enlazado a birthdayStr -->
-      <div class="form-group">
-        <label for="birthday">Aniversario:</label>
-        <input
-          id="birthday"
-          type="date"
-          [(ngModel)]="birthdayStr"
-          name="birthday" />
-      </div>
-
-      <button
-        type="submit"
-        class="submit-button"
-        [disabled]="!userForm.valid">
-        {{ indiceEdicion !== null ? 'Actualizar' : 'Agregar' }}
-      </button>
     </form>
   </div>
 
-  <!-- Lista de usuarios a la derecha -->
   <div class="lista-usuarios">
-    <h2>Lista de Usuarios</h2>
+    <div class="list-header">
+      <h2>Lista de Usuarios</h2>
+      <div class="page-size">
+        <label>Por página</label>
+        <select #sizeSel (change)="setPageSize(sizeSel.value)">
+          <option [selected]="pageSize===3" value="3">3</option>
+          <option [selected]="pageSize===6" value="6">6</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pager">
+      <button type="button" (click)="prevPage()" [disabled]="page<=1">«</button>
+      <span class="counter">Página {{ page }} / {{ totalPages }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page>=totalPages">»</button>
+      <span class="total">Total: {{ usuarios.length }}</span>
+    </div>
+
     <ul>
-      <li *ngFor="let usuario of usuarios; let i = index">
+      <li *ngFor="let usuario of pagedUsuarios; let i = index">
         <div class="user-info">
           <strong>{{ usuario.username }}</strong>
           <div class="button-container">
-            <button (click)="toggleDesplegable(i)" class="detalles mostrar-detalles">
-              {{ desplegado[i] ? 'Ocultar detalles' : 'Mostrar detalles' }}
+            <button (click)="toggleDesplegable(idx(i))" class="detalles mostrar-detalles">
+              {{ desplegado[idx(i)] ? 'Ocultar detalles' : 'Mostrar detalles' }}
             </button>
-            <button (click)="eliminarElemento(i)" class="eliminar">Eliminar</button>
+            <button (click)="openDeleteModal(idx(i))" class="eliminar">Eliminar</button>
           </div>
         </div>
 
-        <!-- Detalles del usuario -->
-        <div *ngIf="desplegado[i]" class="user-details">
-          <p><strong>Email:</strong> {{ usuario.gmail | maskEmail }}</p>
+        <div *ngIf="desplegado[idx(i)]" class="user-details">
+          <p><strong>Email: </strong> {{ usuario.gmail | maskEmail }}</p>
 
-          <p><strong>Contraseña:</strong>
-            <span *ngIf="mostrarPassword[i]">{{ usuario.password }}</span>
-            <span *ngIf="!mostrarPassword[i]">********</span>
+          <p><strong>Contraseña: </strong>
+            <span *ngIf="mostrarPassword[idx(i)]">{{ usuario.password }}</span>
+            <span *ngIf="!mostrarPassword[idx(i)]">********</span>
           </p>
 
-          <p><strong>Aniversario:</strong>
-            <!-- Muestra la fecha formateada -->
-            <strong>{{ usuario.birthday | date: 'yyyy-MM-dd' }}</strong>
+          <p><strong>Aniversario: </strong>
+            <strong>{{ usuario.birthday | date: 'dd-MM-yyyy' }}</strong>
           </p>
 
-          <button (click)="prepararEdicion(usuario, i)" class="modificar">Modificar</button>
+          <button (click)="prepararEdicion(usuario, idx(i))" class="modificar">Modificar</button>
 
-          <!-- Muestra los eventos del usuario (IDs o objetos) -->
-          <p><strong>Eventos:</strong>
-            <ng-container *ngFor="let exp of usuario.eventos">
-              <span>{{ isEvento(exp) ? exp.name : exp }}</span>&nbsp;
-            </ng-container>
-          </p>
+          <div class="user-events">
+            <p><strong>Eventos del usuario: </strong> {{ getUserEventNames(usuario) }}</p>
 
-          <!-- Selector de eventos: el value debe ser el ID (si es objeto, usa _id) -->
-          <select (change)="usuario._id ? agregarEvento(usuario._id, $event) : null">
-            <option *ngFor="let exp of usuario.eventos" [value]="isEvento(exp) ? exp._id : exp">
-              {{ isEvento(exp) ? ('Evento ' + exp.name) : ('Evento ' + exp) }}
-            </option>
-          </select>
+            <div class="available-events">
+              <h4>Otros eventos disponibles</h4>
+              <ul>
+                <li *ngFor="let ev of getAvailableEvents(usuario)">
+                  <span>{{ ev.name }}</span>
+                  <button class="btn-add" (click)="onAddEvent(usuario, ev)">Añadir</button>
+                </li>
+              </ul>
+              <div class="empty" *ngIf="!getAvailableEvents(usuario).length">No hay más eventos disponibles</div>
+            </div>
+          </div>
         </div>
       </li>
     </ul>
+  </div>
+</div>
+
+<!-- Modal eliminar -->
+<div class="modal-overlay" *ngIf="showDeleteModal">
+  <div class="modal">
+    <h3>¿Eliminar usuario?</h3>
+    <p>Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="closeDeleteModal()">Cancelar</button>
+      <button class="btn-confirm" (click)="confirmarEliminar()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal actualización -->
+<div class="modal-overlay" *ngIf="showUpdateModal">
+  <div class="modal">
+    <h3>¿Confirmar actualización?</h3>
+    <p>Se guardarán los cambios del usuario.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="closeUpdateModal()">Cancelar</button>
+      <button class="btn-confirm" (click)="confirmarUpdate()">Actualizar</button>
+    </div>
   </div>
 </div>

@@ -1,47 +1,39 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User } from '../models/user.model';
-const API_BASE = 'http://localhost:3000';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class UserService {
-  private base = `${API_BASE}/api/user`;  // Usar apiUrl desde environment
+  private apiUrl = 'http://localhost:3000/api/user';
 
   constructor(private http: HttpClient) {}
 
-  // Obtener todos los usuarios
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.base);
+    return this.http.get<User[]>(this.apiUrl);
   }
 
-  // Agregar un nuevo usuario
-  addUser(usuario: User): Observable<User> {
-    return this.http.post<User>(this.base, usuario);
+  getUserById(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`);
   }
 
-  // Actualizar un usuario existente
-  updateUser(usuario: User): Observable<User> {
-    return this.http.put<User>(`${this.base}/${usuario._id}`, usuario);
+  addUser(user: User): Observable<User> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post<User>(this.apiUrl, user, { headers });
   }
 
-  updateUserByUsername(username: string, data: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.base}/${encodeURIComponent(username)}`, data);
+  updateUser(user: User): Observable<User> {
+    if (!user._id) throw new Error('Falta _id del usuario a actualizar');
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.put<User>(`${this.apiUrl}/${user._id}`, user, { headers });
   }
 
-  // Eliminar un usuario por su _id
-  deleteUserById(id: string): Observable<any> {
-    return this.http.delete<any>(`${this.base}/${id}`);
+  deleteUserById(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  deleteUserByUsername(username: string): Observable<any> {
-    return this.http.delete<any>(`${this.base}/${encodeURIComponent(username)}`);
-  }
-
-  // Actualizar el array de experiencias de un usuario
-  updateUserEvents(userId: string, eventId: string): Observable<User> {
-    return this.http.put<User>(`${this.base}/${userId}/addEvent`, { eventId });
+  addEventToUser(userId: string, eventId: string): Observable<User> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.put<User>(`${this.apiUrl}/${userId}/addEvent`, { eventId }, { headers });
   }
 }

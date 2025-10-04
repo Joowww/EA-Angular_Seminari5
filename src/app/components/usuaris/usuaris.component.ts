@@ -5,8 +5,9 @@ import { User } from '../../models/user.model';
 import { UserService } from '../../services/user.service';
 import { TruncatePipe } from '../../pipes/truncate.pipe';
 import { MaskEmailPipe } from '../../pipes/maskEmail.pipe';
-import { EventoService } from '../../services/evento.service';
 import { Evento } from '../../models/evento.model';
+import { EventoService } from '../../services/evento.service';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-usuaris',
@@ -20,123 +21,175 @@ export class UsuarisComponent implements OnInit {
   desplegado: boolean[] = [];
   mostrarPassword: boolean[] = [];
 
-  // 🔹 Modelo de dominio (con Date)
   nuevoUsuario: User = {
     username: '',
     gmail: '',
     password: '',
-    birthday: new Date(), // valor "dummy"; el input trabaja con birthdayStr
+    birthday: new Date(),
     eventos: []
   };
 
-  // 🔹 Campo para el <input type="date"> (string "YYYY-MM-DD")
   birthdayStr: string = this.todayISO();
-
   confirmarPassword: string = '';
   usuarioEdicion: User | null = null;
   indiceEdicion: number | null = null;
-  formSubmitted: boolean = false;
+  formSubmitted = false;
 
-  originalUsername: string | null = null;
+  showDeleteModal = false;
+  private pendingDeleteIndex: number | null = null;
 
-  constructor(private userService: UserService, private eventoService: EventoService) {}
+  showUpdateModal = false;
+  private pendingUpdateUser: User | null = null;
+  private pendingUpdateIndex: number | null = null;
+
+  page = 1;
+  pageSize = 6;
+
+  todosEventos: Evento[] = [];
+  private eventosById = new Map<string, Evento>();
+
+  constructor(
+    private userService: UserService,
+    private eventoService: EventoService,
+    private location: Location
+  ) {}
 
   ngOnInit(): void {
+    this.eventoService.getEventos().subscribe({
+      next: (evts) => {
+        this.todosEventos = evts.map(e => ({
+          ...e,
+          schedule: Array.isArray(e.schedule) ? e.schedule : (e.schedule ? [e.schedule as any] : []),
+          participantes: Array.isArray((e as any).participantes) ? (e as any).participantes : ((e as any).participants || [])
+        }));
+        this.eventosById.clear();
+        this.todosEventos.forEach(e => { if (e._id) this.eventosById.set(e._id, e); });
+      }
+    });
+
     this.userService.getUsers().subscribe(data => {
-      // Si el backend devuelve la fecha como string ISO, la convertimos a Date
       this.usuarios = data.map(u => ({
         ...u,
         birthday: new Date(u.birthday as unknown as string)
       }));
-
       this.desplegado = new Array(this.usuarios.length).fill(false);
-
-      // "Popular" eventos: si hay IDs, los sustituyo por objetos Evento
-      this.usuarios.forEach(usuario => {
-        if (usuario.eventos && usuario.eventos.length) {
-          usuario.eventos.forEach((exp, index) => {
-            if (typeof exp === 'string') {
-              this.eventoService.getEventoById(exp).subscribe((evento: Evento) => {
-                usuario.eventos![index] = evento; // remplazo ID por Evento
-              });
-            }
-          });
-        }
-      });
+      this.mostrarPassword = new Array(this.usuarios.length).fill(false);
+      this.clampPage();
     });
   }
+
+  goHome(): void { this.location.back(); }
 
   agregarElemento(userForm: NgForm): void {
     this.formSubmitted = true;
 
-    if (this.nuevoUsuario.password !== this.confirmarPassword) {
-      alert('Las contraseñas no coinciden. Por favor, inténtalo de nuevo.');
-      return;
-    }
+    if (userForm.invalid) return;
+    if (this.nuevoUsuario.password !== this.confirmarPassword) return;
+    if (this.isFutureBirthday(this.birthdayStr)) return;
 
     const birthdayDate = this.parseAsUTCDate(this.birthdayStr);
 
     if (this.indiceEdicion !== null) {
-      // ✅ UPDATE por username original
-      const targetUsername = this.originalUsername || this.nuevoUsuario.username;
-
-      const payload: Partial<User> = {
-        username: this.nuevoUsuario.username,
-        gmail: this.nuevoUsuario.gmail,
-        password: this.nuevoUsuario.password,
+      const actualizado: User = {
+        ...this.nuevoUsuario,
         birthday: birthdayDate,
-        eventos: this.nuevoUsuario.eventos
+        _id: this.usuarios[this.indiceEdicion]._id
       };
-
-      this.userService.updateUserByUsername(targetUsername, payload).subscribe(
-        (updated: any) => {
-          // Normaliza para la UI
-          const updatedUI: User = {
-            ...updated,
-            birthday: new Date(updated.birthday)
-          };
-          this.usuarios[this.indiceEdicion!] = updatedUI;
-          this.indiceEdicion = null;
-          this.originalUsername = null;
-          this.resetForm(userForm);
-        },
-        (error) => {
-          console.error('PUT /api/user/:username error', { status: error?.status, body: error?.error });
-          alert('Error al actualizar el usuario. Revisa consola.');
-        }
-      );
-    } else {
-      // CREATE
-      const usuarioJSON: User = {
-        username: this.nuevoUsuario.username,
-        gmail: this.nuevoUsuario.gmail,
-        password: this.nuevoUsuario.password,
-        birthday: birthdayDate,
-        eventos: this.nuevoUsuario.eventos ?? []
-      };
-
-      this.userService.addUser(usuarioJSON).subscribe((response: any) => {
-        const created = response.user ?? response;
-        const createdUI: User = {
-          ...created,
-          birthday: new Date(created.birthday)
-        };
-        this.usuarios.push(createdUI);
-        this.desplegado.push(false);
-        this.resetForm(userForm);
-      });
+      this.pendingUpdateUser = actualizado;
+      this.pendingUpdateIndex = this.indiceEdicion;
+      this.showUpdateModal = true;
+      return;
     }
+
+    const usuarioJSON: User = {
+      username: this.nuevoUsuario.username,
+      gmail: this.nuevoUsuario.gmail,
+      password: this.nuevoUsuario.password,
+      birthday: birthdayDate,
+      eventos: this.nuevoUsuario.eventos ?? []
+    };
+
+    this.userService.addUser(usuarioJSON).subscribe(response => {
+      this.usuarios.push({
+        ...usuarioJSON,
+        _id: response._id,
+        eventos: response.eventos ?? usuarioJSON.eventos
+      });
+      this.desplegado.push(false);
+      this.mostrarPassword.push(false);
+      this.clampPage();
+      userForm.resetForm();
+      this.resetFormInternal();
+    });
   }
 
-  // Manejo del cambio en el <select> de eventos (ejemplo básico)
-  agregarEvento(usuarioId: string, event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const selectedValue = selectElement.value; // ID del evento seleccionado
-    console.log(`Usuario ID: ${usuarioId}, Evento: ${selectedValue}`);
-    // Aquí podrías llamar a addEventToUser(usuarioId, selectedValue) del servicio si corresponde.
+  confirmarUpdate(): void {
+    if (this.pendingUpdateUser == null || this.pendingUpdateIndex == null) {
+      this.closeUpdateModal();
+      return;
+    }
+    const idx = this.pendingUpdateIndex;
+    this.userService.updateUser(this.pendingUpdateUser).subscribe(response => {
+      this.usuarios[idx] = { ...(response as User) };
+      this.closeUpdateModal();
+      this.resetFormInternal();
+      this.clampPage();
+    });
   }
 
-  resetForm(userForm: NgForm): void {
+  closeUpdateModal(): void {
+    this.showUpdateModal = false;
+    this.pendingUpdateUser = null;
+    this.pendingUpdateIndex = null;
+  }
+
+  openDeleteModal(index: number): void {
+    this.pendingDeleteIndex = index;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.pendingDeleteIndex = null;
+    this.showDeleteModal = false;
+  }
+
+  confirmarEliminar(): void {
+    if (this.pendingDeleteIndex == null) {
+      this.closeDeleteModal();
+      return;
+    }
+    const idx = this.pendingDeleteIndex;
+    const usuarioAEliminar = this.usuarios[idx];
+
+    if (!usuarioAEliminar._id) {
+      alert('El usuario no se puede eliminar porque no estÃ¡ registrado en la base de datos.');
+      this.closeDeleteModal();
+      return;
+    }
+
+    this.userService.deleteUserById(usuarioAEliminar._id).subscribe(
+      () => {
+        this.usuarios.splice(idx, 1);
+        this.desplegado.splice(idx, 1);
+        this.mostrarPassword.splice(idx, 1);
+        this.clampPage();
+        this.closeDeleteModal();
+      },
+      () => {
+        alert('Error al eliminar el usuario. Por favor, intÃ©ntalo de nuevo.');
+        this.closeDeleteModal();
+      }
+    );
+  }
+
+  cancelarEdicion(userForm: NgForm): void {
+    this.indiceEdicion = null;
+    this.usuarioEdicion = null;
+    userForm.resetForm();
+    this.resetFormInternal();
+  }
+
+  private resetFormInternal(): void {
     this.nuevoUsuario = {
       username: '',
       gmail: '',
@@ -147,78 +200,106 @@ export class UsuarisComponent implements OnInit {
     this.birthdayStr = this.todayISO();
     this.confirmarPassword = '';
     this.formSubmitted = false;
-    userForm.resetForm();
+    this.indiceEdicion = null;
   }
 
   prepararEdicion(usuario: User, index: number): void {
     this.usuarioEdicion = { ...usuario };
     this.nuevoUsuario = { ...usuario };
     this.indiceEdicion = index;
-    this.desplegado[index] = true;
-
-    // ✅ Guarda el username original para el path del PUT
-    this.originalUsername = usuario.username;
-
-    // Rellena el input date
+    // Solo uno abierto
+    this.desplegado = this.desplegado.map((_, i) => i === index);
     this.birthdayStr = this.toISODate(new Date(usuario.birthday));
   }
 
-  eliminarElemento(index: number): void {
-    const usuarioAEliminar = this.usuarios[index];
-
-    if (!usuarioAEliminar?.username) {
-      console.error('El usuario no tiene username válido. No se puede eliminar.');
-      alert('El usuario no se puede eliminar porque no tiene username válido.');
-      return;
-    }
-
-    if (confirm(`¿Estás seguro de que deseas eliminar a ${usuarioAEliminar.username}?`)) {
-      this.userService.deleteUserByUsername(usuarioAEliminar.username).subscribe(
-        () => {
-          this.usuarios.splice(index, 1);
-          this.desplegado.splice(index, 1);
-        },
-        (error) => {
-          // Log útil para ver exactamente qué devuelve el backend si algo falla
-          console.error('DELETE /api/user/:username error', {
-            status: error?.status,
-            body: error?.error
-          });
-          alert('Error al eliminar el usuario. Por favor, inténtalo de nuevo.');
-        }
-      );
-    }
-  }
-
   toggleDesplegable(index: number): void {
-    this.desplegado[index] = !this.desplegado[index];
+    const willOpen = !this.desplegado[index];
+    this.desplegado = this.desplegado.map((_, i) => i === index ? willOpen : false);
   }
 
   togglePassword(index: number): void {
     this.mostrarPassword[index] = !this.mostrarPassword[index];
   }
 
-  // --------- Helpers ---------
-  private todayISO(): string {
-    const d = new Date();
-    return d.toISOString().slice(0, 10); // YYYY-MM-DD
-    // Ojo: si quieres zona local estricta, puedes construirla con getFullYear()/getMonth()+1/getDate()
+  private userEventIds(u: User): string[] {
+    return (u.eventos ?? []).map(e => typeof e === 'string' ? e : (e._id ?? '')).filter(Boolean) as string[];
   }
 
+  getUserEvents(u: User): Evento[] {
+    const ids = new Set(this.userEventIds(u));
+    return this.todosEventos.filter(ev => ev._id && ids.has(ev._id));
+  }
+
+  getUserEventNames(u: User): string {
+    const names = this.getUserEvents(u).map(e => e.name).filter(Boolean);
+    return names.length ? names.join(', ') : '-';
+  }
+
+  getAvailableEvents(u: User): Evento[] {
+    const ids = new Set(this.userEventIds(u));
+    return this.todosEventos.filter(ev => ev._id && !ids.has(ev._id));
+  }
+
+  onAddEvent(u: User, ev: Evento): void {
+    if (!u._id || !ev._id) return;
+    this.userService.addEventToUser(u._id, ev._id).subscribe({
+      next: (updated) => {
+        const idx = this.usuarios.findIndex(x => x._id === updated._id);
+        if (idx >= 0) {
+          const current = this.usuarios[idx];
+          const currentIds = this.userEventIds(current);
+          if (!currentIds.includes(ev._id!)) {
+            current.eventos = [...(current.eventos ?? []), ev._id!];
+          }
+        }
+      },
+      error: () => alert('No se pudo aÃ±adir el usuario a ese evento.')
+    });
+  }
+
+  get pagedUsuarios(): User[] {
+    const start = (this.page - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    return this.usuarios.slice(start, end);
+  }
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.usuarios.length / this.pageSize));
+  }
+  setPageSize(v: string): void {
+    const n = parseInt(v, 10) || 6;
+    this.pageSize = n;
+    this.page = 1;
+    this.clampPage();
+  }
+  prevPage(): void { if (this.page > 1) this.page--; }
+  nextPage(): void { if (this.page < this.totalPages) this.page++; }
+  idx(i: number): number { return (this.page - 1) * this.pageSize + i; }
+  private clampPage(): void {
+    this.page = Math.min(Math.max(1, this.page), this.totalPages);
+  }
+
+  private todayISO(): string {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }
   private toISODate(d: Date): string {
-    // Normaliza a "YYYY-MM-DD" (UTC) para <input type="date">
     return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
       .toISOString()
       .slice(0, 10);
   }
-
   private parseAsUTCDate(ymd: string): Date {
-    // Evita desfases por timezone
     const [y, m, d] = ymd.split('-').map(Number);
     return new Date(Date.UTC(y, m - 1, d));
   }
+  private todayUTC(): Date {
+    const t = new Date();
+    return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()));
+  }
+  isFutureBirthday(ymd: string): boolean {
+    if (!ymd) return false;
+    return this.parseAsUTCDate(ymd) > this.todayUTC();
+  }
 
-  // Type guard para plantillas (cuando eventos pueden ser string o Evento)
   isEvento(e: string | Evento): e is Evento {
     return !!e && typeof e === 'object' && 'name' in e && 'schedule' in e;
   }
