@@ -26,7 +26,6 @@
               <input type="time" [(ngModel)]="timeStr" name="timeStr" aria-label="Hora" />
               <button type="button" (click)="setSchedule()" class="add-slot">Establecer horario</button>
 
-              <!-- ✅ CAMBIO: el botón "Quitar" solo se muestra si hay horario establecido -->
               <button
                 type="button"
                 *ngIf="newEvent.schedule && newEvent.schedule !== ''"

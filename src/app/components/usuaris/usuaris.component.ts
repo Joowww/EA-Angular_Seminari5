@@ -207,7 +207,7 @@ export class UsuarisComponent implements OnInit {
     this.usuarioEdicion = { ...usuario };
     this.nuevoUsuario = { ...usuario };
     this.indiceEdicion = index;
-    // Solo uno abierto
+
     this.desplegado = this.desplegado.map((_, i) => i === index);
     this.birthdayStr = this.toISODate(new Date(usuario.birthday));
   }

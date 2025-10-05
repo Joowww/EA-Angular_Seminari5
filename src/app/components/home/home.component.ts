@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router'; // Asegúrate de importar RouterModule
+import { RouterModule } from '@angular/router'; 
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterModule, RouterLink], // Importar RouterLink
+  imports: [RouterModule, RouterLink], 
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
