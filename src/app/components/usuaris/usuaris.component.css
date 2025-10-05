@@ -144,6 +144,10 @@ button.eliminar:hover { background-color: #2E7D32; }
 button.modificar { background-color: #808000; }
 button.modificar:hover { background-color: #6B8E23; }
 
+/* ✅ CAMBIO: estilo del botón “Añadir” para que sea como “Modificar” */
+.btn-add { background-color: #808000; }
+.btn-add:hover { background-color: #6B8E23; }
+
 /* Modales (se reutilizan estilos existentes) */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45);

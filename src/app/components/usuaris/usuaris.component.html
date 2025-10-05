@@ -153,6 +153,8 @@
             <button (click)="toggleDesplegable(idx(i))" class="detalles mostrar-detalles">
               {{ desplegado[idx(i)] ? 'Ocultar detalles' : 'Mostrar detalles' }}
             </button>
+            <!-- ✅ CAMBIO: mover “Modificar” junto a “Eliminar” -->
+            <button (click)="prepararEdicion(usuario, idx(i))" class="modificar">Modificar</button>
             <button (click)="openDeleteModal(idx(i))" class="eliminar">Eliminar</button>
           </div>
         </div>
@@ -169,7 +171,8 @@
             <strong>{{ usuario.birthday | date: 'dd-MM-yyyy' }}</strong>
           </p>
 
-          <button (click)="prepararEdicion(usuario, idx(i))" class="modificar">Modificar</button>
+          <!-- ❌ CAMBIO: se elimina el botón Modificar de aquí para no duplicar -->
+          <!-- (antes estaba aquí el botón “Modificar”) -->
 
           <div class="user-events">
             <p><strong>Eventos del usuario: </strong> {{ getUserEventNames(usuario) }}</p>
@@ -179,6 +182,7 @@
               <ul>
                 <li *ngFor="let ev of getAvailableEvents(usuario)">
                   <span>{{ ev.name }}</span>
+                  <!-- ✅ CAMBIO: botón “Añadir” con estilo como “Modificar” -->
                   <button class="btn-add" (click)="onAddEvent(usuario, ev)">Añadir</button>
                 </li>
               </ul>

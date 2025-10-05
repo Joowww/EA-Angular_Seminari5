@@ -102,11 +102,15 @@ export class EventoComponent implements OnInit {
   onSubmit(): void {
     this.errorMessage = '';
     if (!this.newEvent.name?.trim()) {
-      this.errorMessage = 'El tÃ­tulo del evento es obligatorio.';
+      this.errorMessage = 'El ti­tulo del evento es obligatorio.';
       return;
     }
     if (!this.newEvent.schedule?.length) {
       this.errorMessage = 'Selecciona el horario del evento.';
+      return;
+    }
+    if (!this.newEvent.address?.length) {
+      this.errorMessage = 'Selecciona la dirección del evento.';
       return;
     }
 
