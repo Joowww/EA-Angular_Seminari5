@@ -1,8 +1,20 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from './services/auth.service';
 
-import { routes } from './app.routes';
-
-export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+  const currentUser = authService.getCurrentUser();
+  
+  if (currentUser) {
+    // Puedes agregar headers de autenticación si los necesitas
+    const authReq = req.clone({
+      setHeaders: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return next(authReq);
+  }
+  
+  return next(req);
 };

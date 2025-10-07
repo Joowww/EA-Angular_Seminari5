@@ -3,19 +3,39 @@ import { NgModule } from '@angular/core';
 import { UsuarisComponent } from './components/usuaris/usuaris.component';
 import { EventoComponent } from './components/evento/evento.component';
 import { HomeComponent } from './components/home/home.component';
+import { authGuard } from './guards/auth.guard';
+import { LoginComponent } from './components/login/login.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'home', pathMatch: 'full' }, // Redirige a Home por defecto
-  { path: 'home', component: HomeComponent },
-  { path: 'usuaris', component: UsuarisComponent },
-  { path: 'evento', component: EventoComponent },
-  { path: '**', redirectTo: 'home' } // Redirige cualquier ruta desconocida a Home
+  { path: 'login', component: LoginComponent },
+  { 
+    path: '', 
+    redirectTo: 'login', 
+    pathMatch: 'full' 
+  },
+  { 
+    path: 'home', 
+    component: HomeComponent,
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'usuaris', 
+    component: UsuarisComponent,
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'evento', 
+    component: EventoComponent,
+    canActivate: [authGuard] 
+  },
+  { 
+    path: '**', 
+    redirectTo: 'login' 
+  }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { useHash: true })], // Activar el modo hash para evitar problemas con el enrutado
+  imports: [RouterModule.forRoot(routes, { useHash: true })],
   exports: [RouterModule]
 })
-export class AppRoutingModule {}
-
-
+export class AppRoutingModule { }
