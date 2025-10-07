@@ -7,7 +7,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const currentUser = authService.getCurrentUser();
   
   if (currentUser) {
-    // Puedes agregar headers de autenticación si los necesitas
     const authReq = req.clone({
       setHeaders: {
         'Content-Type': 'application/json'

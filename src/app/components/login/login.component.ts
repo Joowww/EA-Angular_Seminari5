@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -12,10 +12,12 @@ import { finalize } from 'rxjs/operators';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent  {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  private starInterval: any;
+  private cometInterval: any;
 
   constructor(
     private fb: FormBuilder,
@@ -58,7 +60,6 @@ export class LoginComponent {
         console.log('Admin creado:', response);
         alert('Usuario admin creado exitosamente. Ahora puedes iniciar sesión con usuario: "admin" y contraseña: "admin"');
         
-        // Autorellenar el formulario con las credenciales del admin
         this.loginForm.patchValue({
           username: 'admin',
           password: 'admin'

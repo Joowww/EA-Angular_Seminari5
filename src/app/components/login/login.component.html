@@ -1,11 +1,15 @@
 <div class="login-container">
+  <div class="space-background"></div>
+  <div class="stars"></div>
+  
   <div class="login-card">
     <div class="login-header">
-      <h1 class="login-title">Bienvenido</h1>
-      <p class="login-subtitle">Inicia sesión en tu cuenta</p>
+      <h1 class="login-title">Bienvenido al seminario de angular</h1>
+      <p class="login-subtitle">Inicia sesión en tu cuenta de admin</p>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        
       <!-- Campo Username -->
       <div class="form-group">
         <label class="form-label" for="username">Nombre de usuario</label>
@@ -64,7 +68,7 @@
     <!-- Sección para crear admin (solo desarrollo) -->
     <div class="admin-section">
       <p style="color: #666; margin-bottom: 10px; font-size: 13px;">
-        ¿Primera vez? Crea el usuario admin
+        ¿Primera vez? Crea el usuario admin aquí.
       </p>
       <button type="button" class="admin-button" (click)="createAdmin()">
         Crear Usuario Admin

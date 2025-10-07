@@ -8,18 +8,28 @@ import { MaskEmailPipe } from '../../pipes/maskEmail.pipe';
 import { Evento } from '../../models/evento.model';
 import { EventoService } from '../../services/evento.service';
 import { Location } from '@angular/common';
+import { DynamicTableComponent, TableColumn } from '../table/table.component';
 
 @Component({
   selector: 'app-usuaris',
   templateUrl: './usuaris.component.html',
   styleUrls: ['./usuaris.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, TruncatePipe, MaskEmailPipe]
+  imports: [CommonModule, FormsModule, TruncatePipe, MaskEmailPipe, DynamicTableComponent]
 })
 export class UsuarisComponent implements OnInit {
   usuarios: User[] = [];
   desplegado: boolean[] = [];
   mostrarPassword: boolean[] = [];
+
+  showTableView: boolean = false;
+  tableColumns: TableColumn[] = [
+    { key: 'username', label: 'Nombre de Usuario', sortable: true },
+    { key: 'gmail', label: 'Email', sortable: true },
+    { key: 'birthday', label: 'Cumpleaños', sortable: true, type: 'date' },
+    { key: 'eventCount', label: 'Nº Eventos', sortable: true },
+    { key: 'actions', label: 'Acciones', type: 'actions' }
+  ];
 
   nuevoUsuario: User = {
     username: '',
@@ -76,6 +86,65 @@ export class UsuarisComponent implements OnInit {
       this.mostrarPassword = new Array(this.usuarios.length).fill(false);
       this.clampPage();
     });
+  }
+
+  toggleTableView(): void {
+    this.showTableView = !this.showTableView;
+  }
+
+  get usuariosForTable(): any[] {
+    return this.usuarios.map(usuario => ({
+      ...usuario,
+      eventCount: this.getUserEvents(usuario).length,
+      birthday: new Date(usuario.birthday)
+    }));
+  }
+
+  onTableEdit(user: any): void {
+    const index = this.usuarios.findIndex(u => u._id === user._id);
+    if (index !== -1) {
+      this.prepararEdicion(this.usuarios[index], index);
+      document.querySelector('.form-container')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  onTableDelete(user: any): void {
+    const index = this.usuarios.findIndex(u => u._id === user._id);
+    if (index !== -1) {
+      this.openDeleteModal(index);
+    }
+  }
+
+  exportTable(): void {
+    const csvContent = this.convertToCSV(this.usuariosForTable);
+    this.downloadCSV(csvContent, 'usuarios.csv');
+  }
+
+  private convertToCSV(data: any[]): string {
+    const headers = ['Nombre de Usuario', 'Email', 'Cumpleaños', 'Nº Eventos'];
+    const csvRows = [headers.join(',')];
+    
+    data.forEach(row => {
+      const values = [
+        `"${row.username}"`,
+        `"${row.gmail}"`,
+        `"${new Date(row.birthday).toLocaleDateString()}"`,
+        row.eventCount
+      ];
+      csvRows.push(values.join(','));
+    });
+    
+    return csvRows.join('\n');
+  }
+
+  private downloadCSV(csvContent: string, filename: string): void {
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   goHome(): void { this.location.back(); }
@@ -162,7 +231,7 @@ export class UsuarisComponent implements OnInit {
     const usuarioAEliminar = this.usuarios[idx];
 
     if (!usuarioAEliminar._id) {
-      alert('El usuario no se puede eliminar porque no estÃ¡ registrado en la base de datos.');
+      alert('El usuario no se puede eliminar porque no está registrado en la base de datos.');
       this.closeDeleteModal();
       return;
     }
@@ -176,7 +245,7 @@ export class UsuarisComponent implements OnInit {
         this.closeDeleteModal();
       },
       () => {
-        alert('Error al eliminar el usuario. Por favor, intÃ©ntalo de nuevo.');
+        alert('Error al eliminar el usuario. Por favor, inténtalo de nuevo.');
         this.closeDeleteModal();
       }
     );
@@ -253,7 +322,7 @@ export class UsuarisComponent implements OnInit {
           }
         }
       },
-      error: () => alert('No se pudo aÃ±adir el usuario a ese evento.')
+      error: () => alert('No se pudo añadir el usuario a ese evento.')
     });
   }
 

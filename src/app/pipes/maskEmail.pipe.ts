@@ -11,7 +11,7 @@ export class MaskEmailPipe implements PipeTransform {
     if (username.length > 1) {
       return `${username.charAt(0)}*****@${domain}`;
     } else {
-      return `*${username.charAt(0)}@${domain}`; // Handles single character usernames
+      return `*${username.charAt(0)}@${domain}`; 
     }
   }
 }

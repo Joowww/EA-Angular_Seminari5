@@ -1,15 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ExperienciaComponent } from './evento.component';
+import { EventoComponent } from './evento.component';
 import { FormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ExperienciaService } from '../../services/evento.service';
+import { EventoService } from '../../services/evento.service';
 import { UserService } from '../../services/user.service';
 import { of } from 'rxjs';
 
 describe('ExperienciaComponent', () => {
-  let component: ExperienciaComponent;
-  let fixture: ComponentFixture<ExperienciaComponent>;
-  let experienciaService: jasmine.SpyObj<ExperienciaService>;
+  let component: EventoComponent;
+  let fixture: ComponentFixture<EventoComponent>;
+  let experienciaService: jasmine.SpyObj<EventoService>;
   let userService: jasmine.SpyObj<UserService>;
 
   beforeEach(async () => {
@@ -17,22 +17,22 @@ describe('ExperienciaComponent', () => {
     const userServiceSpy = jasmine.createSpyObj('UserService', ['getUsers']);
 
     await TestBed.configureTestingModule({
-      declarations: [ExperienciaComponent],
+      declarations: [EventoComponent],
       imports: [FormsModule, HttpClientTestingModule],
       providers: [
-        { provide: ExperienciaService, useValue: experienciaServiceSpy },
+        { provide: EventoService, useValue: experienciaServiceSpy },
         { provide: UserService, useValue: userServiceSpy }
       ]
     }).compileComponents();
 
-    experienciaService = TestBed.inject(ExperienciaService) as jasmine.SpyObj<ExperienciaService>;
+    experienciaService = TestBed.inject(EventoService) as jasmine.SpyObj<EventoService>;
     userService = TestBed.inject(UserService) as jasmine.SpyObj<UserService>;
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ExperienciaComponent);
+    fixture = TestBed.createComponent(EventoComponent);
     component = fixture.componentInstance;
-    component.selectedParticipants = []; // Asegúrate de inicializar selectedParticipants
+    component.selectedUsers = []; 
     fixture.detectChanges();
   });
 
@@ -41,11 +41,11 @@ describe('ExperienciaComponent', () => {
   });
 
   it('should have an empty list of selected participants initially', () => {
-    expect(component.selectedParticipants).toEqual([]); // Asegúrate de que selectedParticipants esté vacío inicialmente
+    expect(component.selectedUsers).toEqual([]); 
   });
 
   it('should call getExperiencias on init', () => {
-    expect(experienciaService.getExperiencias).toHaveBeenCalled();
+    expect(experienciaService.getEventos).toHaveBeenCalled();
   });
 
   it('should call getUsers on init', () => {
