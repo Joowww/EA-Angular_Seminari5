@@ -25,6 +25,19 @@ export class EventoService {
     return this.http.post<Evento>(this.apiUrl, payload, { headers });
   }
 
+  // Update event with PUT method
+  updateEvento(evento: Evento): Observable<Evento> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    const scheduleAsString =
+      Array.isArray(evento.schedule) ? (evento.schedule[0] || '') : (evento.schedule as any);
+    const payload: any = { 
+      ...evento, 
+      schedule: scheduleAsString, 
+      participantes: [...(evento.participantes || [])] 
+    };
+    return this.http.put<Evento>(`${this.apiUrl}/${evento._id}`, payload, { headers });
+  }
+
   deleteEvento(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

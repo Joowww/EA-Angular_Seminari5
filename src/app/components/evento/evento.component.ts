@@ -26,10 +26,25 @@ export class EventoComponent implements OnInit {
   showDeleteModal = false;
   private pendingDeleteIndex: number | null = null;
 
+  // Edit modal state management
+  showEditModal = false;
+  editEvent: Evento = { name: '', schedule: [], address: '', participantes: [] };
+  editAvailableUsers: User[] = [];
+  editSelectedUsers: User[] = [];
+  editDateStr: string = '';
+  editTimeStr: string = '';
+  private pendingEditIndex: number | null = null;
+
   availablePage = 1;
   availablePageSize = 5;
   selectedPage = 1;
   selectedPageSize = 5;
+
+  // Separate pagination for edit mode
+  editAvailablePage = 1;
+  editAvailablePageSize = 5;
+  editSelectedPage = 1;
+  editSelectedPageSize = 5;
 
   constructor(
     private eventoService: EventoService,
@@ -38,6 +53,11 @@ export class EventoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadUsers();
+    this.loadEventos();
+  }
+
+  private loadUsers(): void {
     this.userService.getUsers().subscribe({
       next: (users) => {
         this.users = users as any;
@@ -45,6 +65,9 @@ export class EventoComponent implements OnInit {
         this.clampPages();
       }
     });
+  }
+
+  private loadEventos(): void {
     this.eventoService.getEventos().subscribe({
       next: (evts) => {
         this.eventos = evts.map(e => ({
@@ -54,6 +77,174 @@ export class EventoComponent implements OnInit {
         }));
       }
     });
+  }
+
+  // Open edit modal with event data
+  openEditModal(index: number): void {
+    this.pendingEditIndex = index;
+    const evento = this.eventos[index];
+    
+    this.editEvent = { ...evento };
+    this.editSelectedUsers = this.users.filter(user => 
+      this.editEvent.participantes?.includes(user._id!)
+    );
+    this.editAvailableUsers = this.users.filter(user => 
+      !this.editEvent.participantes?.includes(user._id!)
+    );
+
+    if (this.editEvent.schedule && this.editEvent.schedule.length > 0) {
+      const scheduleStr = Array.isArray(this.editEvent.schedule) ? 
+        this.editEvent.schedule[0] : this.editEvent.schedule;
+      const [datePart, timePart] = scheduleStr.split(' ');
+      this.editDateStr = datePart;
+      this.editTimeStr = timePart;
+    } else {
+      this.editDateStr = '';
+      this.editTimeStr = '';
+    }
+
+    this.showEditModal = true;
+    this.clampEditPages();
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.pendingEditIndex = null;
+    this.editEvent = { name: '', schedule: [], address: '', participantes: [] };
+    this.editAvailableUsers = [];
+    this.editSelectedUsers = [];
+    this.editDateStr = '';
+    this.editTimeStr = '';
+  }
+
+  setEditSchedule(): void {
+    this.errorMessage = '';
+    if (!this.editDateStr || !this.editTimeStr) {
+      this.errorMessage = 'Selecciona fecha y hora.';
+      return;
+    }
+    const slot = `${this.editDateStr} ${this.editTimeStr}`;
+    this.editEvent.schedule = [slot];
+  }
+
+  clearEditSchedule(): void {
+    this.editEvent.schedule = [];
+    this.editDateStr = '';
+    this.editTimeStr = '';
+  }
+
+  // Add participant in edit mode
+  addEditParticipant(u: User): void {
+    if (!u?._id) return;
+    this.editAvailableUsers = this.editAvailableUsers.filter(x => x._id !== u._id);
+    if (!this.editSelectedUsers.find(x => x._id === u._id)) this.editSelectedUsers.push(u);
+    this.syncEditParticipantsIds();
+    this.clampEditPages();
+  }
+
+  // Remove participant in edit mode
+  removeEditParticipant(u: User): void {
+    if (!u?._id) return;
+    this.editSelectedUsers = this.editSelectedUsers.filter(x => x._id !== u._id);
+    if (!this.editAvailableUsers.find(x => x._id === u._id)) {
+      this.editAvailableUsers.push(u);
+      this.editAvailableUsers.sort((a, b) => a.username.localeCompare(b.username));
+    }
+    this.syncEditParticipantsIds();
+    this.clampEditPages();
+  }
+
+  private syncEditParticipantsIds(): void {
+    this.editEvent.participantes = this.editSelectedUsers.map(u => u._id!).filter(Boolean);
+  }
+
+  // Submit edited event data
+  onEditSubmit(): void {
+    this.errorMessage = '';
+    if (!this.editEvent.name?.trim()) {
+      this.errorMessage = 'El título del evento es obligatorio.';
+      return;
+    }
+    if (!this.editEvent.schedule?.length) {
+      this.errorMessage = 'Selecciona el horario del evento.';
+      return;
+    }
+    if (!this.editEvent.address?.length) {
+      this.errorMessage = 'Selecciona la dirección del evento.';
+      return;
+    }
+
+    this.eventoService.updateEvento(this.editEvent).subscribe({
+      next: (updated) => {
+        const normalized: Evento = {
+          ...updated,
+          schedule: Array.isArray(updated.schedule) ? updated.schedule : (updated.schedule ? [updated.schedule as any] : []),
+          participantes: Array.isArray((updated as any).participantes) ? (updated as any).participantes : ((updated as any).participants || [])
+        };
+        
+        if (this.pendingEditIndex !== null) {
+          this.eventos[this.pendingEditIndex] = normalized;
+        }
+        
+        this.closeEditModal();
+        this.errorMessage = '';
+      },
+      error: () => this.errorMessage = 'Error al actualizar el evento. Revisa los datos.'
+    });
+  }
+
+  // Pagination methods for edit mode
+  get editAvailableTotalPages(): number {
+    return Math.max(1, Math.ceil(this.editAvailableUsers.length / this.editAvailablePageSize));
+  }
+
+  get editSelectedTotalPages(): number {
+    return Math.max(1, Math.ceil(this.editSelectedUsers.length / this.editSelectedPageSize));
+  }
+
+  get editAvailablePageItems(): User[] {
+    const start = (this.editAvailablePage - 1) * this.editAvailablePageSize;
+    return this.editAvailableUsers.slice(start, start + this.editAvailablePageSize);
+  }
+
+  get editSelectedPageItems(): User[] {
+    const start = (this.editSelectedPage - 1) * this.editSelectedPageSize;
+    return this.editSelectedUsers.slice(start, start + this.editSelectedPageSize);
+  }
+
+  editAvailablePrevPage(): void {
+    if (this.editAvailablePage > 1) this.editAvailablePage--;
+  }
+
+  editAvailableNextPage(): void {
+    if (this.editAvailablePage < this.editAvailableTotalPages) this.editAvailablePage++;
+  }
+
+  setEditAvailablePageSize(v: string): void {
+    const n = parseInt(v, 10) || 5;
+    this.editAvailablePageSize = n;
+    this.editAvailablePage = 1;
+    this.clampEditPages();
+  }
+
+  editSelectedPrevPage(): void {
+    if (this.editSelectedPage > 1) this.editSelectedPage--;
+  }
+
+  editSelectedNextPage(): void {
+    if (this.editSelectedPage < this.editSelectedTotalPages) this.editSelectedPage++;
+  }
+
+  setEditSelectedPageSize(v: string): void {
+    const n = parseInt(v, 10) || 5;
+    this.editSelectedPageSize = n;
+    this.editSelectedPage = 1;
+    this.clampEditPages();
+  }
+
+  private clampEditPages(): void {
+    this.editAvailablePage = Math.min(Math.max(1, this.editAvailablePage), this.editAvailableTotalPages);
+    this.selectedPage = Math.min(Math.max(1, this.selectedPage), this.selectedTotalPages);
   }
 
   goHome(): void {
@@ -102,7 +293,7 @@ export class EventoComponent implements OnInit {
   onSubmit(): void {
     this.errorMessage = '';
     if (!this.newEvent.name?.trim()) {
-      this.errorMessage = 'El ti­tulo del evento es obligatorio.';
+      this.errorMessage = 'El título del evento es obligatorio.';
       return;
     }
     if (!this.newEvent.schedule?.length) {
@@ -206,6 +397,7 @@ export class EventoComponent implements OnInit {
   get availableTotalPages(): number {
     return Math.max(1, Math.ceil(this.availableUsers.length / this.availablePageSize));
   }
+  
   get selectedTotalPages(): number {
     return Math.max(1, Math.ceil(this.selectedUsers.length / this.selectedPageSize));
   }
@@ -214,6 +406,7 @@ export class EventoComponent implements OnInit {
     const start = (this.availablePage - 1) * this.availablePageSize;
     return this.availableUsers.slice(start, start + this.availablePageSize);
   }
+  
   get selectedPageItems(): User[] {
     const start = (this.selectedPage - 1) * this.selectedPageSize;
     return this.selectedUsers.slice(start, start + this.selectedPageSize);
@@ -222,9 +415,11 @@ export class EventoComponent implements OnInit {
   availablePrevPage(): void {
     if (this.availablePage > 1) this.availablePage--;
   }
+  
   availableNextPage(): void {
     if (this.availablePage < this.availableTotalPages) this.availablePage++;
   }
+  
   setAvailablePageSize(v: string): void {
     const n = parseInt(v, 10) || 5;
     this.availablePageSize = n;
@@ -235,9 +430,11 @@ export class EventoComponent implements OnInit {
   selectedPrevPage(): void {
     if (this.selectedPage > 1) this.selectedPage--;
   }
+  
   selectedNextPage(): void {
     if (this.selectedPage < this.selectedTotalPages) this.selectedPage++;
   }
+  
   setSelectedPageSize(v: string): void {
     const n = parseInt(v, 10) || 5;
     this.selectedPageSize = n;

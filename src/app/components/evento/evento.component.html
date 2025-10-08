@@ -1,5 +1,4 @@
 <div class="evento-container">
-  <!-- Formulario de evento -->
   <div class="evento-form">
     <form (ngSubmit)="onSubmit()">
       <div class="form-header">
@@ -74,7 +73,6 @@
 
         <div class="right-col">
           <div class="participants-wrapper">
-            <!-- Usuarios disponibles -->
             <div class="participants-column">
               <div class="list-header">
                 <h4>👥 Usuarios disponibles</h4>
@@ -104,7 +102,6 @@
               </div>
             </div>
 
-            <!-- Participantes del evento -->
             <div class="participants-column">
               <div class="list-header">
                 <h4>🎯 Participantes del evento</h4>
@@ -145,7 +142,7 @@
     </div>
   </div>
 
-  <!-- Lista de eventos -->
+  <!-- Edit and Delete buttons in event list -->
   <div class="evento-list">
     <h1>Lista de Eventos</h1>
     
@@ -171,15 +168,16 @@
           <span>{{ getParticipantsNames(evento) }}</span>
         </p>
 
+        <!-- Action buttons for each event -->
         <div class="actions">
-          <button (click)="openDeleteModal(i)">🗑️ Eliminar Evento</button>
+          <button class="btn-edit" (click)="openEditModal(i)">✏️ Modificar Evento</button>
+          <button class="btn-delete" (click)="openDeleteModal(i)">🗑️ Eliminar Evento</button>
         </div>
       </li>
     </ul>
   </div>
 </div>
 
-<!-- Modal eliminar -->
 <div class="modal-overlay" *ngIf="showDeleteModal">
   <div class="modal">
     <h3>¿Eliminar evento?</h3>
@@ -188,5 +186,149 @@
       <button class="btn-cancel" (click)="closeDeleteModal()">Cancelar</button>
       <button class="btn-confirm" (click)="confirmarEliminar()">Eliminar</button>
     </div>
+  </div>
+</div>
+
+<!-- Edit event modal -->
+<div class="modal-overlay" *ngIf="showEditModal">
+  <div class="modal large-modal">
+    <div class="modal-header">
+      <h3>✏️ Modificar Evento</h3>
+      <button class="btn-close" (click)="closeEditModal()">×</button>
+    </div>
+
+    <form (ngSubmit)="onEditSubmit()">
+      <div class="form-group">
+        <label for="editName" class="form-label">Título del evento:</label>
+        <input
+          id="editName"
+          class="form-input"
+          type="text"
+          [(ngModel)]="editEvent.name"
+          name="editName"
+          placeholder="Ej: Reunión de planificación Q4"
+          required />
+      </div>
+
+      <div class="form-two-col">
+        <div class="left-col">
+          <div class="form-group">
+            <label class="form-label">Horario del evento:</label>
+            <div class="schedule-row">
+              <input 
+                type="date" 
+                class="form-input"
+                [(ngModel)]="editDateStr" 
+                name="editDateStr" 
+                aria-label="Fecha" />
+              <input 
+                type="time" 
+                class="form-input"
+                [(ngModel)]="editTimeStr" 
+                name="editTimeStr" 
+                aria-label="Hora" />
+              <button type="button" (click)="setEditSchedule()" class="add-slot">
+                📅 Actualizar horario
+              </button>
+
+              <button
+                type="button"
+                *ngIf="editEvent.schedule && editEvent.schedule !== ''"
+                (click)="clearEditSchedule()"
+                class="remove-slot">
+                ❌ Quitar
+              </button>
+            </div>
+
+            <div class="schedule-preview">
+              <strong>Horario actual: </strong>
+              <span *ngIf="editEvent.schedule; else noEditHorario">
+                {{ getScheduleText(editEvent) }}
+              </span>
+              <ng-template #noEditHorario><em>Sin horario establecido</em></ng-template>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editAddress" class="form-label">Dirección:</label>
+            <input
+              id="editAddress"
+              class="form-input"
+              type="text"
+              [(ngModel)]="editEvent.address"
+              name="editAddress"
+              placeholder="Ej: C/ Mallorca 123, Barcelona" />
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="participants-wrapper">
+            <!-- Edit mode participants management -->
+            <div class="participants-column">
+              <div class="list-header">
+                <h4>👥 Usuarios disponibles</h4>
+                <div class="page-size">
+                  <label>Por página</label>
+                  <select #editAvailableSize (change)="setEditAvailablePageSize(editAvailableSize.value)">
+                    <option [selected]="editAvailablePageSize===4" value="4">4</option>
+                    <option [selected]="editAvailablePageSize===6" value="6">6</option>
+                    <option [selected]="editAvailablePageSize===8" value="8">8</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pager">
+                <button type="button" (click)="editAvailablePrevPage()" [disabled]="editAvailablePage<=1">«</button>
+                <span class="counter">Página {{ editAvailablePage }} / {{ editAvailableTotalPages }}</span>
+                <button type="button" (click)="editAvailableNextPage()" [disabled]="editAvailablePage>=editAvailableTotalPages">»</button>
+                <span class="total">Total: {{ editAvailableUsers.length }}</span>
+              </div>
+
+              <div class="user-row" *ngFor="let u of editAvailablePageItems">
+                <span class="user-name">{{ u.username }}</span>
+                <button type="button" (click)="addEditParticipant(u)" class="btn-add">➕ Añadir</button>
+              </div>
+              <div class="empty" *ngIf="!editAvailableUsers.length">
+                ✅ Todos los usuarios están en el evento
+              </div>
+            </div>
+
+            <div class="participants-column">
+              <div class="list-header">
+                <h4>🎯 Participantes del evento</h4>
+                <div class="page-size">
+                  <label>Por página</label>
+                  <select #editSelectedSize (change)="setEditSelectedPageSize(editSelectedSize.value)">
+                    <option [selected]="editSelectedPageSize===4" value="4">4</option>
+                    <option [selected]="editSelectedPageSize===6" value="6">6</option>
+                    <option [selected]="editSelectedPageSize===8" value="8">8</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pager">
+                <button type="button" (click)="editSelectedPrevPage()" [disabled]="editSelectedPage<=1">«</button>
+                <span class="counter">Página {{ editSelectedPage }} / {{ editSelectedTotalPages }}</span>
+                <button type="button" (click)="editSelectedNextPage()" [disabled]="editSelectedPage>=editSelectedTotalPages">»</button>
+                <span class="total">Total: {{ editSelectedUsers.length }}</span>
+              </div>
+
+              <div class="user-row" *ngFor="let u of editSelectedPageItems">
+                <span class="user-name">{{ u.username }}</span>
+                <button type="button" (click)="removeEditParticipant(u)" class="btn-remove">➖ Quitar</button>
+              </div>
+              <div class="empty" *ngIf="!editSelectedUsers.length">
+                ℹ️ Nadie apuntado aún
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeEditModal()">Cancelar</button>
+        <button type="submit" class="btn-confirm">💾 Guardar Cambios</button>
+      </div>
+    </form>
   </div>
 </div>
