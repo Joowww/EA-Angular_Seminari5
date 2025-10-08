@@ -1,4 +1,4 @@
-g# EA-AngularSeminari5
+### EA-AngularSeminari5
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.2.
 
